@@ -3,7 +3,7 @@ name: Build SurfOS ISO
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Giver dig en "Run workflow"-knap i Actions-fanen
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,6 +25,7 @@ jobs:
           --mirror-bootstrap http://deb.debian.org/debian \
           --mirror-chroot http://deb.debian.org/debian \
           --security false \
+          --apt-indices false \
           --apt-recommends false \
           --binary-images iso-hybrid \
           --distribution bookworm \
