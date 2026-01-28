@@ -1,0 +1,41 @@
+name: Build SurfOS ISO
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y live-build debootstrap isolinux syslinux-efi mtools genisoimage squashfs-tools
+
+    - name: Configure live-build
+      run: |
+        lb config \
+          --apt-recommends false \
+          --binary-images iso-hybrid \
+          --distribution bookworm \
+          --archive-areas "main contrib non-free non-free-firmware" \
+          --bootappend-live "boot=live config username=surfos user-fullname=\"Surf OS\" nottyautologin" \
+          --debian-installer none \
+          --system live
+
+    - name: Copy config files
+      run: cp -r config/* .
+
+    - name: Build ISO
+      run: sudo lb build
+
+    - name: Upload ISO artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: surfos-iso
+        path: live-image-amd64.hybrid.iso
