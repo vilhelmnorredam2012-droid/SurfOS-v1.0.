@@ -3,7 +3,7 @@ name: Build SurfOS ISO
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Giver dig en "Run workflow"-knap i Actions-fanen
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,7 +16,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap isolinux syslinux-efi mtools genisoimage squashfs-tools xorriso
+        sudo apt install -y live-build debootstrap isolinux syslinux-efi syslinux-common mtools genisoimage squashfs-tools xorriso zstd
+        sudo mkdir -p /root/isolinux
+        sudo cp /usr/lib/ISOLINUX/isolinux.bin /root/isolinux/ || true
+        sudo cp /usr/lib/syslinux/modules/bios/vesamenu.c32 /root/isolinux/ || true
 
     - name: Configure live-build
       run: |
