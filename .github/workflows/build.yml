@@ -3,6 +3,7 @@ name: Build SurfOS ISO
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:  # Dette lader dig starte manuelt fra Actions-fanen!
 
 jobs:
   build:
@@ -15,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap isolinux syslinux-efi mtools genisoimage squashfs-tools
+        sudo apt install -y live-build debootstrap isolinux syslinux-efi mtools genisoimage squashfs-tools xorriso
 
     - name: Configure live-build
       run: |
@@ -24,12 +25,8 @@ jobs:
           --binary-images iso-hybrid \
           --distribution bookworm \
           --archive-areas "main contrib non-free non-free-firmware" \
-          --bootappend-live "boot=live config username=surfos user-fullname=\"Surf OS\" nottyautologin" \
-          --debian-installer none \
-          --system live
-
-    - name: Copy config files
-      run: cp -r config/* .
+          --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" \
+          --debian-installer none
 
     - name: Build ISO
       run: sudo lb build
