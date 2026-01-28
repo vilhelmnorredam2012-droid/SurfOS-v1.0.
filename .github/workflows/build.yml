@@ -3,7 +3,7 @@ name: Build SurfOS ISO
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:  # Giver dig en "Run workflow"-knap i Actions-fanen
 
 jobs:
   build:
@@ -32,7 +32,8 @@ jobs:
           --archive-areas "main contrib non-free non-free-firmware" \
           --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" \
           --debian-installer none \
-          --keyring-packages debian-archive-keyring
+          --keyring-packages debian-archive-keyring \
+          --linux-flavours amd64
 
     - name: Build ISO
       run: sudo lb build
