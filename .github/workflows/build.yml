@@ -38,8 +38,7 @@ jobs:
           --debian-installer false \
           --debian-installer-gui false \
           --keyring-packages debian-archive-keyring \
-          --linux-packages none \
-          --squashfs-options "-no-xattrs"
+          --linux-packages none
 
     - name: Build ISO
       run: sudo lb build
