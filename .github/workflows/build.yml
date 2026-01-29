@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd
+        sudo apt install -y live-build debootstrap syslinux-utils mtools genisoimage squashfs-tools xorriso zstd
 
     - name: Configure live-build
       run: |
