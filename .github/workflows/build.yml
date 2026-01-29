@@ -16,10 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap isolinux syslinux syslinux-common syslinux-efi mtools genisoimage squashfs-tools xorriso zstd
-        sudo mkdir -p /root/isolinux
-        sudo cp /usr/lib/ISOLINUX/isolinux.bin /root/isolinux/ || sudo cp /usr/share/syslinux/isolinux.bin /root/isolinux/ || true
-        sudo cp /usr/lib/syslinux/modules/bios/vesamenu.c32 /root/isolinux/ || sudo cp /usr/share/syslinux/vesamenu.c32 /root/isolinux/ || true
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd
 
     - name: Configure live-build
       run: |
@@ -30,6 +27,7 @@ jobs:
           --security false \
           --apt-recommends false \
           --binary-images iso-hybrid \
+          --bootloaders grub-efi \
           --distribution bookworm \
           --archive-areas "main contrib non-free non-free-firmware" \
           --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" \
