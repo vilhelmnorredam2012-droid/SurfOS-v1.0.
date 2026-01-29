@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Tilbage til latest – starter hurtigt
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -16,17 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap syslinux-utils mtools genisoimage squashfs-tools xorriso zstd
-
-    - name: Ensure isohybrid is available
-      run: |
-        # Hvis isohybrid ikke findes efter install, download manuelt fra Debian
-        if ! command -v isohybrid &> /dev/null; then
-          sudo wget -O /usr/local/bin/isohybrid https://deb.debian.org/debian/pool/main/s/syslinux/syslinux-utils_3%3a6.04~git20190206.bf6db5b4+dfsg1-3_amd64.deb
-          sudo dpkg -x /usr/local/bin/isohybrid /tmp/isohybrid
-          sudo cp /tmp/isohybrid/usr/bin/isohybrid /usr/local/bin/
-          sudo chmod +x /usr/local/bin/isohybrid
-        fi
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd
 
     - name: Configure live-build
       run: |
@@ -36,7 +26,7 @@ jobs:
           --mirror-chroot http://deb.debian.org/debian \
           --security false \
           --apt-recommends false \
-          --binary-images iso-hybrid \
+          --binary-images iso \  # ← Ændret herfra iso-hybrid til iso
           --bootloader grub-efi \
           --distribution bookworm \
           --archive-areas "main contrib non-free non-free-firmware" \
