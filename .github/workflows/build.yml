@@ -16,10 +16,13 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap isolinux syslinux-efi syslinux-common mtools genisoimage squashfs-tools xorriso zstd
+        sudo apt install -y live-build debootstrap isolinux syslinux syslinux-common syslinux-efi mtools genisoimage squashfs-tools xorriso zstd
         sudo mkdir -p /root/isolinux
-        sudo cp /usr/lib/ISOLINUX/isolinux.bin /root/isolinux/ || true
-        sudo cp /usr/lib/syslinux/modules/bios/vesamenu.c32 /root/isolinux/ || true
+        # Kopier isolinux.bin (fra ISOLINUX-pakken)
+        sudo cp /usr/lib/ISOLINUX/isolinux.bin /root/isolinux/ || sudo cp /usr/share/syslinux/isolinux.bin /root/isolinux/ || true
+        # Kopier vesamenu.c32 (fra syslinux-modules)
+        sudo cp /usr/lib/syslinux/modules/bios/vesamenu.c32 /root/isolinux/ || sudo cp /usr/share/syslinux/vesamenu.c32 /root/isolinux/ || true
+        # Ekstra almindelige moduler for at undgå flere fejl
         sudo cp /usr/lib/syslinux/modules/bios/ldlinux.c32 /root/isolinux/ || true
         sudo cp /usr/lib/syslinux/modules/bios/chain.c32 /root/isolinux/ || true
 
