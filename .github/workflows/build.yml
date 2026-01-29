@@ -28,4 +28,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: surfos-iso
-        path: live-image-amd64.hybrid.iso
+        path: live-image-amd64.iso
