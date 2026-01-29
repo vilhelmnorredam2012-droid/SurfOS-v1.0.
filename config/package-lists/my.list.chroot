@@ -7,3 +7,5 @@ dbus-x11
 fonts-dejavu
 alsa-utils
 network-manager
+network-manager-gnome
+unclutter
