@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on:
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -24,11 +24,11 @@ jobs:
     - name: Build ISO
       run: sudo lb build
 
-    - name: List built files
+    - name: List all files
       run: ls -la
 
     - name: Upload ISO artifact
       uses: actions/upload-artifact@v4
       with:
         name: surfos-iso
-        path: *.iso
+        path: **/*.iso
