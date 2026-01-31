@@ -17,13 +17,16 @@ jobs:
         sudo apt update
         sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils debian-archive-keyring
 
-    - name: Clean live-build cache
-      run: sudo lb clean --purge
+    - name: Extra clean to remove old configs and cache
+      run: |
+        sudo rm -rf auto cache config binary chroot
+        sudo lb clean --purge || true
 
     - name: Configure live-build
-      run: lb config --mode debian \
+      run: sudo lb config --mode debian \
         --mirror-bootstrap http://deb.debian.org/debian \
         --mirror-chroot http://deb.debian.org/debian \
+        --mirror-binary http://deb.debian.org/debian \
         --security false \
         --apt-recommends false \
         --binary-images iso-hybrid \
@@ -37,7 +40,7 @@ jobs:
         --linux-packages none \
         --image-name surfos \
         --uefi-secure-boot disable \
-        --debootstrap-options "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
+        --debootstrap-options "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg --include=debian-archive-keyring"
 
     - name: Build ISO
       run: sudo lb build
