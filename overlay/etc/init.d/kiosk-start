@@ -1,0 +1,14 @@
+#!/sbin/openrc-run
+
+description="Start SurfOS kiosk mode"
+
+depend() {
+  need localmount
+  after bootmisc
+}
+
+start() {
+  ebegin "Starting SurfOS kiosk"
+  su - surfos -c "startx" &
+  eend 0
+}
