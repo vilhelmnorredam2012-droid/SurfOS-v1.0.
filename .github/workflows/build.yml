@@ -23,17 +23,17 @@ jobs:
         sudo rm -rf auto config binary chroot .build cache || true
 
     - name: Configure live-build
-      run: lb config --mode debian --mirror-bootstrap http://deb.debian.org/debian --mirror-chroot http://deb.debian.org/debian --security false --apt-recommends false --binary-images iso-hybrid --bootloader grub-efi --distribution bookworm --archive-areas "main contrib non-free non-free-firmware" --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" --debian-installer false --debian-installer-gui false --keyring-packages debian-archive-keyring --linux-packages none --image-name surfos
+      run: lb config --mode debian --mirror-bootstrap http://deb.debian.org/debian --mirror-chroot http://deb.debian.org/debian --security false --apt-recommends false --binary-images iso-hybrid --bootloader grub-efi --distribution bookworm --archive-areas "main contrib non-free non-free-firmware" --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" --debian-installer false --debian-installer-gui false --keyring-packages debian-archive-keyring --linux-packages none
 
     - name: Build ISO
       run: sudo lb build
 
-    - name: List all files
+    - name: List all files after build
       run: ls -la
 
-    - name: Rename to surfos.hybrid.iso (backup if needed)
+    - name: Rename to surfos.hybrid.iso
       run: |
-        mv binary.hybrid.iso surfos.hybrid.iso || mv binary.iso surfos.hybrid.iso || echo "No ISO found"
+        mv binary.hybrid.iso surfos.hybrid.iso || mv binary.iso surfos.hybrid.iso || echo "No ISO found - check log"
 
     - name: Upload ISO artifact
       uses: actions/upload-artifact@v4
