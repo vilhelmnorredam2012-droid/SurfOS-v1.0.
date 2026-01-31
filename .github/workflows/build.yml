@@ -7,25 +7,31 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install dependencies (inkl. isohybrid via syslinux-utils og xorriso)
+    - name: Add Debian sid repo + fetch GPG keys + install fresh live-build
       run: |
+        echo "deb http://deb.debian.org/debian sid main" | sudo tee /etc/apt/sources.list.d/sid.list
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131 78DBA3BC47EF2265
         sudo apt update
-        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils isolinux
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils isolinux debian-archive-keyring ca-certificates binfmt-support qemu-user-static
 
-    - name: Clean old build files
+    - name: Super clean for fresh start
       run: |
-        sudo lb clean --all --purge || true
         sudo rm -rf auto config binary chroot .build cache || true
+        sudo lb clean --purge || true
 
-    - name: Configure live-build for hybrid
-      run: lb config --mode debian \
+    - name: Configure live-build (force bookworm hybrid)
+      run: sudo lb config --mode debian \
         --mirror-bootstrap http://deb.debian.org/debian \
         --mirror-chroot http://deb.debian.org/debian \
+        --mirror-binary http://deb.debian.org/debian \
+        --mirror-chroot-security http://security.debian.org/debian-security \
+        --mirror-binary-security http://security.debian.org/debian-security \
         --security false \
         --apt-recommends false \
         --binary-images iso-hybrid \
@@ -41,16 +47,16 @@ jobs:
     - name: Build ISO
       run: sudo lb build
 
-    - name: Check if isohybrid exists and list files
+    - name: List files and check isohybrid
       run: |
-        which isohybrid || echo "isohybrid not found"
-        ls -la binary* || echo "No binary files"
+        which isohybrid || echo "isohybrid mangler stadig"
+        ls -la binary* || echo "Ingen binary.iso/hibrid"
 
-    - name: Rename ISO if it exists
+    - name: Rename ISO
       run: |
-        mv binary.hybrid.iso surfos.hybrid.iso 2>/dev/null || mv binary.iso surfos.hybrid.iso 2>/dev/null || echo "No ISO - check log"
+        mv binary.hybrid.iso surfos.hybrid.iso 2>/dev/null || mv binary.iso surfos.hybrid.iso 2>/dev/null || echo "Ingen ISO fundet"
 
-    - name: Upload SurfOS ISO
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: surfos-iso
