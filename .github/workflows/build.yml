@@ -22,7 +22,7 @@ jobs:
         sudo lb clean --purge || true
         sudo rm -rf auto config binary chroot .build cache || true
 
-    - name: Configure live-build (med no-check-gpg og hybrid)
+    - name: Configure live-build (med korrekt debootstrap-options)
       run: sudo lb config --mode debian \
         --mirror-bootstrap http://deb.debian.org/debian \
         --mirror-chroot http://deb.debian.org/debian \
