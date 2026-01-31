@@ -1,0 +1,11 @@
+xserver-xorg
+xinit
+chromium
+nodm
+live-boot
+live-tools
+network-manager
+network-manager-gnome  # til nem WiFi hvis nødvendigt
+alsa-utils  # lyd
+x11-xserver-utils
+unclutter  # skjuler musemarkør
