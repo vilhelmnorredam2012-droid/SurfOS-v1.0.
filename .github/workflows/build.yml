@@ -15,7 +15,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils debian-archive-keyring
+
+    - name: Clean live-build cache
+      run: sudo lb clean --purge
 
     - name: Configure live-build
       run: lb config --mode debian \
@@ -33,7 +36,8 @@ jobs:
         --keyring-packages debian-archive-keyring \
         --linux-packages none \
         --image-name surfos \
-        --uefi-secure-boot disable
+        --uefi-secure-boot disable \
+        --debootstrap-options "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
 
     - name: Build ISO
       run: sudo lb build
