@@ -7,26 +7,26 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Stabil base, men vi opgraderer live-build
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Add Debian sid repo temporarily and install fresh live-build + debootstrap
+    - name: Add Debian sid repo and fetch missing GPG keys
       run: |
         echo "deb http://deb.debian.org/debian sid main" | sudo tee /etc/apt/sources.list.d/sid.list
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78DBA3BC47EF2265
         sudo apt update
-        sudo apt install -y --allow-unauthenticated live-build debootstrap \
-          mtools genisoimage squashfs-tools xorriso zstd syslinux-utils \
-          debian-archive-keyring ca-certificates binfmt-support qemu-user-static
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils debian-archive-keyring ca-certificates binfmt-support qemu-user-static
 
     - name: Super clean - remove old live-build files
       run: |
         sudo rm -rf auto config binary chroot .build cache || true
         sudo lb clean --purge || true
 
-    - name: Configure live-build with fresh tools (force bookworm)
+    - name: Configure live-build (force bookworm, hybrid, custom name)
       run: sudo lb config \
         --ignore-system-defaults \
         --distribution bookworm \
@@ -57,9 +57,9 @@ jobs:
     - name: List files after build
       run: ls -la
 
-    - name: Rename ISO
+    - name: Rename ISO to surfos.hybrid.iso
       run: |
-        mv binary.hybrid.iso surfos.hybrid.iso 2>/dev/null || mv binary.iso surfos.hybrid.iso 2>/dev/null || { echo "No ISO - check log!"; exit 1; }
+        mv binary.hybrid.iso surfos.hybrid.iso 2>/dev/null || mv binary.iso surfos.hybrid.iso 2>/dev/null || { echo "No ISO built! Check log."; exit 1; }
 
     - name: Upload SurfOS ISO
       uses: actions/upload-artifact@v4
