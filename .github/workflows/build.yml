@@ -12,31 +12,47 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install dependencies
+    - name: Install dependencies (inkl. isohybrid via syslinux-utils og xorriso)
       run: |
         sudo apt update
-        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils
+        sudo apt install -y live-build debootstrap mtools genisoimage squashfs-tools xorriso zstd syslinux-utils isolinux
 
-    - name: Clean old build files (important for hybrid)
+    - name: Clean old build files
       run: |
         sudo lb clean --all --purge || true
         sudo rm -rf auto config binary chroot .build cache || true
 
-    - name: Configure live-build
-      run: lb config --mode debian --mirror-bootstrap http://deb.debian.org/debian --mirror-chroot http://deb.debian.org/debian --security false --apt-recommends false --binary-images iso-hybrid --bootloader grub-efi --distribution bookworm --archive-areas "main contrib non-free non-free-firmware" --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" --debian-installer false --debian-installer-gui false --keyring-packages debian-archive-keyring --linux-packages none
+    - name: Configure live-build for hybrid
+      run: lb config --mode debian \
+        --mirror-bootstrap http://deb.debian.org/debian \
+        --mirror-chroot http://deb.debian.org/debian \
+        --security false \
+        --apt-recommends false \
+        --binary-images iso-hybrid \
+        --bootloader syslinux,grub-efi \
+        --distribution bookworm \
+        --archive-areas "main contrib non-free non-free-firmware" \
+        --bootappend-live "boot=live config username=surfos hostname=surfos locales=da_DK.UTF-8 keyboard-layouts=dk" \
+        --debian-installer false \
+        --debian-installer-gui false \
+        --keyring-packages debian-archive-keyring \
+        --linux-packages none
 
     - name: Build ISO
       run: sudo lb build
 
-    - name: List all files after build
-      run: ls -la
-
-    - name: Rename to surfos.hybrid.iso
+    - name: Check if isohybrid exists and list files
       run: |
-        mv binary.hybrid.iso surfos.hybrid.iso || mv binary.iso surfos.hybrid.iso || echo "No ISO found - check log"
+        which isohybrid || echo "isohybrid not found"
+        ls -la binary* || echo "No binary files"
 
-    - name: Upload ISO artifact
+    - name: Rename ISO if it exists
+      run: |
+        mv binary.hybrid.iso surfos.hybrid.iso 2>/dev/null || mv binary.iso surfos.hybrid.iso 2>/dev/null || echo "No ISO - check log"
+
+    - name: Upload SurfOS ISO
       uses: actions/upload-artifact@v4
       with:
         name: surfos-iso
         path: surfos.hybrid.iso
+        if-no-files-found: warn
