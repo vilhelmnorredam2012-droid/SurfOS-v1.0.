@@ -31,6 +31,7 @@ jobs:
           alpine:latest sh -c "
             apk update &&
             apk add alpine-sdk alpine-make-vm-image git curl &&
+            chmod +x ./mkimg.surfos.sh &&
             ./mkimg.surfos.sh
           "
 
