@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Alpine mkimage profil for SurfOS kiosk
-# Køres inde i Docker som root – ingen sudo nødvendigt
+# Køres inde i Docker som root
 
 PROFILE=surfos
-ALPINE_BRANCH=edge  # eller "v3.20" for stabil
+ALPINE_BRANCH=edge
 ARCH=x86_64
 
 # Lav profile-scriptet
@@ -25,7 +25,7 @@ profile_surfos() {
 profile_surfos
 EOF
 
-# Kør alpine-make-vm-image med korrekt syntax
+# Kør alpine-make-vm-image med korrekt syntax (fra Alpine wiki)
 alpine-make-vm-image \
   --image-format iso \
   --image-size 2G \
@@ -36,7 +36,7 @@ alpine-make-vm-image \
   surfos-hybrid.iso \
   /tmp/mkimg.$PROFILE.sh
 
-# Lav ISO'en hybrid (til USB)
+# Lav ISO'en hybrid til USB-boot
 isohybrid surfos-hybrid.iso
 
 echo "ISO bygget: surfos-hybrid.iso"
