@@ -32,17 +32,25 @@ jobs:
         sudo docker run --rm -v $(pwd):/workdir -w /workdir \
           alpine:latest sh -c "
             apk update &&
-            apk add alpine-sdk alpine-make-vm-image git curl qemu-img syslinux &&
+            apk add alpine-sdk alpine-make-vm-image git curl qemu qemu-img syslinux xorriso &&
             chmod +x mkimg.surfos.sh &&
-            ./mkimg.surfos.sh
+            echo '=== Starting build ===' &&
+            ./mkimg.surfos.sh --verbose &&
+            echo '=== Build finished ===' &&
+            ls -la . || echo 'No files in directory' &&
+            find . -name '*.iso' -ls || echo 'No .iso files found anywhere'
           "
 
-    - name: List files after build
-      run: ls -la *.iso || echo "Ingen ISO fundet"
+    - name: List all possible ISO files
+      run: |
+        ls -la *.iso *.img || echo "Ingen ISO/IMG fundet"
+        find . -name '*.iso' -o -name '*.img' || echo "Ingen ISO/IMG fundet nogen steder"
 
-    - name: Upload ISO artifact
+    - name: Upload any ISO found
       uses: actions/upload-artifact@v4
       with:
         name: surfos-alpine-iso
-        path: surfos-hybrid.iso
+        path: |
+          *.iso
+          *.img
         if-no-files-found: warn
