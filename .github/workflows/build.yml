@@ -12,15 +12,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install dependencies
+    - name: Build SurfOS ISO with Docker
       run: |
+        # Installer Docker (hvis ikke allerede installeret)
         sudo apt update
-        sudo apt install -y git alpine-sdk alpine-make-vm-image curl
+        sudo apt install -y docker.io
+        sudo systemctl start docker
 
-    - name: Build SurfOS ISO
-      run: sudo ./mkimg.surfos.sh
+        # Byg ISO inde i en Alpine Docker-container
+        sudo docker run --rm -v $(pwd):/workdir -w /workdir \
+          alpine:latest sh -c "
+            apk update &&
+            apk add alpine-sdk alpine-make-vm-image git curl &&
+            ./mkimg.surfos.sh
+          "
 
-    - name: List files
+    - name: List files after build
       run: ls -la *.iso || echo "Ingen ISO fundet"
 
     - name: Upload ISO artifact
