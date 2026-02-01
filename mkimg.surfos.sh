@@ -1,38 +1,36 @@
 #!/bin/sh
 
-# Alpine mkimage script for SurfOS kiosk
-# Køres som root inde i Docker – ingen sudo
+set -e
 
-PROFILE=surfos
-ALPINE_BRANCH=edge
-ARCH=x86_64
+echo "=== Starting SurfOS build ==="
 
-# Lav midlertidig profile-fil
-cat <<EOF > /tmp/mkimg.$PROFILE.sh
-profile_surfos() {
-  kernel_cmdline="unionfs_size=512M console=tty0 console=ttyS0,115200"
-  syslinux_serial="0 115200"
-  kernel_addons="linux-lts"
-  apks="alpine-base musl openrc chromium xorg-server xf86-video-vesa xf86-input-libinput xinit dbus openbox unclutter ttf-dejavu font-noto qemu-img syslinux"
-  local _k _a
-  for _k in \$kernel_addons; do apks="\$apks linux-\$_k"; done
-  for _a in \$kernel_addons; do apks="\$apks \$_a"; done
-}
-profile_surfos
-EOF
+# Lav en midlertidig raw disk-image (ikke iso endnu)
+TEMP_IMAGE="surfos-temp.raw"
+qemu-img create -f raw "$TEMP_IMAGE" 2G
 
-# Kør med korrekt syntax (ingen --profile, --tag, --out)
-alpine-make-vm-image \
-  --image-format iso \
-  --image-size 2G \
-  --arch "$ARCH" \
-  --boot-mode UEFI \
-  --branch "$ALPINE_BRANCH" \
-  --fs-skel-dir overlay/ \
-  surfos-hybrid.iso \
-  /tmp/mkimg.$PROFILE.sh
+# Monter image som loop-device og formatér
+LOOP_DEV=$(sudo losetup -f --show "$TEMP_IMAGE")
+sudo mkfs.ext4 "$LOOP_DEV"
+sudo mkdir /mnt/surfos
+sudo mount "$LOOP_DEV" /mnt/surfos
 
-# Gør ISO'en hybrid til USB-boot
+# Installer base Alpine
+sudo apk --root /mnt/surfos --initdb --repository http://dl-cdn.alpinelinux.org/alpine/edge/main --repository http://dl-cdn.alpinelinux.org/alpine/edge/community add alpine-base musl openrc chromium xorg-server xf86-video-vesa xf86-input-libinput xinit dbus openbox unclutter ttf-dejavu font-noto linux-lts
+
+# Kopier overlay-filer
+sudo cp -r overlay/* /mnt/surfos/
+
+# Lav initramfs og konfigurer boot
+sudo mkinitfs -c /mnt/surfos/etc/mkinitfs/mkinitfs.conf -b /mnt/surfos $(ls /mnt/surfos/lib/modules/ | head -1)
+
+# Umount og lav ISO
+sudo umount /mnt/surfos
+sudo losetup -d "$LOOP_DEV"
+
+# Lav hybrid ISO fra raw image (simpel måde – kan udvides)
+xorriso -as mkisofs -o surfos-hybrid.iso -b boot/syslinux/isolinux.bin -c boot/syslinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot "$TEMP_IMAGE"
+
 isohybrid surfos-hybrid.iso
 
 echo "ISO bygget: surfos-hybrid.iso"
+ls -la surfos-hybrid.iso
