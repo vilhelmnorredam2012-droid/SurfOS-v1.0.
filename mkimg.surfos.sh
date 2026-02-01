@@ -12,7 +12,7 @@ cat <<EOF > /tmp/mkimg.$PROFILE.sh
 profile_surfos() {
   kernel_cmdline="unionfs_size=512M console=tty0 console=ttyS0,115200"
   syslinux_serial="0 115200"
-  kernel_addons="linux-lts"  # Tilføjet kernel for boot
+  kernel_addons="linux-lts"
   apks="alpine-base musl openrc
         chromium xorg-server xf86-video-vesa xf86-input-libinput
         xinit dbus openbox unclutter
@@ -25,18 +25,18 @@ profile_surfos() {
 profile_surfos
 EOF
 
-# Kør alpine-make-vm-image med korrekt syntax (ingen --profile, --tag, --out – brug <image> som argument)
+# Kør alpine-make-vm-image med korrekt syntax
 alpine-make-vm-image \
   --image-format iso \
   --image-size 2G \
   --arch "$ARCH" \
-  --boot-mode UEFI  # Til hybrid USB (UEFI + BIOS via syslinux)
+  --boot-mode UEFI \
   --branch "$ALPINE_BRANCH" \
   --fs-skel-dir overlay/ \
   surfos-hybrid.iso \
   /tmp/mkimg.$PROFILE.sh
 
-# Lav ISO'en hybrid (til USB-boot)
+# Lav ISO'en hybrid (til USB)
 isohybrid surfos-hybrid.iso
 
 echo "ISO bygget: surfos-hybrid.iso"
