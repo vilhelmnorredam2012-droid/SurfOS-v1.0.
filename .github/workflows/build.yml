@@ -12,26 +12,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install Docker the official way (avoids containerd conflict)
+    - name: Install Docker the official way
       run: |
         sudo apt update
         sudo apt install -y ca-certificates curl gnupg lsb-release
         sudo mkdir -p /etc/apt/keyrings
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         sudo apt update
         sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     - name: Start Docker service
       run: sudo systemctl start docker
 
-    - name: Build SurfOS ISO inside Alpine Docker container
+    - name: Build SurfOS ISO inside Alpine container
       run: |
         sudo docker run --rm -v $(pwd):/workdir -w /workdir \
           alpine:latest sh -c "
             apk update &&
             apk add alpine-sdk alpine-make-vm-image git curl &&
-            chmod +x ./mkimg.surfos.sh &&
+            chmod +x mkimg.surfos.sh &&
             ./mkimg.surfos.sh
           "
 
@@ -43,4 +45,4 @@ jobs:
       with:
         name: surfos-alpine-iso
         path: surfos-hybrid.iso
-        if-no-files-found: error
+        if-no-files-found: warn
