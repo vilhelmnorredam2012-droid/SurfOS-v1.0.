@@ -39,9 +39,15 @@ jobs:
 
       - name: Lav squashfs og ISO
         run: |
-          sudo mkdir -p live iso/live iso/boot
+          sudo mkdir -p live iso/live iso/boot iso/isolinux
           sudo mksquashfs chroot live/filesystem.squashfs -comp xz -e chroot/boot
           sudo cp live/filesystem.squashfs iso/live/
+
+          # Kopier isolinux-filer (til legacy BIOS boot)
+          sudo cp /usr/lib/ISOLINUX/isolinux.bin iso/isolinux/
+          sudo cp /usr/lib/syslinux/modules/bios/ldlinux.c32 iso/isolinux/
+
+          # Kopier boot-mapper hvis de findes (ignorér hvis ikke)
           sudo cp -r chroot/boot/* iso/boot/ || true
 
           sudo xorriso -as mkisofs -o surfos.iso \
