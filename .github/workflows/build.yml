@@ -44,5 +44,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: surfos-alpine-iso
-        path: surfos-hybrid.iso
+        path: surfos-alpine.iso
         if-no-files-found: warn
