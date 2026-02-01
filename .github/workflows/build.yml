@@ -31,7 +31,6 @@ jobs:
           sudo chroot chroot locale-gen
           echo "LANG=da_DK.UTF-8" | sudo tee chroot/etc/default/locale
 
-          # Lav bruger surfos og autostart
           sudo chroot chroot useradd -m -s /bin/bash surfos
           echo "exec openbox-session" | sudo tee chroot/home/surfos/.xinitrc
           echo "unclutter -idle 0.1 -root &" | sudo tee -a chroot/home/surfos/.xinitrc
@@ -40,8 +39,8 @@ jobs:
 
       - name: Lav squashfs og ISO
         run: |
+          sudo mkdir -p live iso/live iso/boot
           sudo mksquashfs chroot live/filesystem.squashfs -comp xz -e chroot/boot
-          sudo mkdir -p iso/live iso/boot
           sudo cp live/filesystem.squashfs iso/live/
           sudo cp -r chroot/boot/* iso/boot/ || true
 
@@ -57,7 +56,7 @@ jobs:
       - name: Vis filer
         run: ls -la *.iso || echo "Ingen ISO fundet"
 
-      - name: Upload ISO (hvis den findes)
+      - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
           name: surfos-iso
