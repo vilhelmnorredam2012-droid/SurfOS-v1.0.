@@ -3,7 +3,6 @@
 # SurfOS kiosk startup – fuldskærm med faner mulige
 unclutter -idle 0.1 -root &  # Skjul mus
 
-# Start Chromium i fuldskærm/app-mode (faner + indstillinger tilgængelige)
 chromium-browser \
   --start-fullscreen \
   --app=https://www.startpage.com \
