@@ -1,0 +1,65 @@
+name: Build SurfOS Minimal ISO
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install værktøjer
+        run: |
+          sudo apt update
+          sudo apt install -y debootstrap xorriso syslinux-utils isolinux mtools genisoimage squashfs-tools
+
+      - name: Lav minimal Debian chroot
+        run: |
+          sudo mkdir -p chroot
+          sudo debootstrap --arch=amd64 bookworm chroot http://deb.debian.org/debian
+          sudo chroot chroot apt update
+          sudo chroot chroot apt install -y --no-install-recommends \
+            chromium xserver-xorg-core xinit openbox unclutter dbus locales
+
+      - name: Opsæt dansk og autostart
+        run: |
+          echo "da_DK.UTF-8 UTF-8" | sudo tee -a chroot/etc/locale.gen
+          sudo chroot chroot locale-gen
+          echo "LANG=da_DK.UTF-8" | sudo tee chroot/etc/default/locale
+
+          # Lav bruger surfos og autostart
+          sudo chroot chroot useradd -m -s /bin/bash surfos
+          echo "exec openbox-session" | sudo tee chroot/home/surfos/.xinitrc
+          echo "unclutter -idle 0.1 -root &" | sudo tee -a chroot/home/surfos/.xinitrc
+          echo "chromium --kiosk --incognito --no-first-run --noerrdialogs --disable-infobars https://www.startpage.com" | sudo tee -a chroot/home/surfos/.xinitrc
+          sudo chmod +x chroot/home/surfos/.xinitrc
+
+      - name: Lav squashfs og ISO
+        run: |
+          sudo mksquashfs chroot live/filesystem.squashfs -comp xz -e chroot/boot
+          sudo mkdir -p iso/live iso/boot
+          sudo cp live/filesystem.squashfs iso/live/
+          sudo cp -r chroot/boot/* iso/boot/ || true
+
+          sudo xorriso -as mkisofs -o surfos.iso \
+            -b isolinux/isolinux.bin \
+            -c isolinux/boot.cat \
+            -no-emul-boot -boot-load-size 4 -boot-info-table \
+            -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
+            iso
+
+          sudo isohybrid surfos.iso || echo "isohybrid mislykkedes – ISO stadig brugbar"
+
+      - name: Vis filer
+        run: ls -la *.iso || echo "Ingen ISO fundet"
+
+      - name: Upload ISO (hvis den findes)
+        uses: actions/upload-artifact@v4
+        with:
+          name: surfos-iso
+          path: surfos.iso
+          if-no-files-found: warn
