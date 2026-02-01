@@ -18,8 +18,7 @@ jobs:
         sudo apt install -y git alpine-sdk alpine-make-vm-image curl
 
     - name: Build SurfOS ISO
-      run: |
-        sudo ./mkimg.surfos.sh
+      run: sudo ./mkimg.surfos.sh
 
     - name: List files
       run: ls -la *.iso || echo "Ingen ISO fundet"
@@ -28,5 +27,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: surfos-alpine-iso
-        path: *.iso
+        path: surfos-hybrid.iso
         if-no-files-found: error
