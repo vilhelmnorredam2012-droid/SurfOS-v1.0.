@@ -1,13 +1,11 @@
 #!/bin/sh
 
 # Alpine mkimage profil for SurfOS kiosk
-# Kører med sudo ./mkimg.surfos.sh
+# Køres inde i Docker som root – ingen sudo nødvendigt
 
 PROFILE=surfos
-ALPINE_BRANCH=edge  # eller "v3.20" for stabil
+ALPINE_BRANCH=edge  # eller "v3.21" for stabil version
 ARCH=x86_64
-
-apk add alpine-sdk alpine-make-vm-image
 
 cat <<EOF > /tmp/mkimg.$PROFILE.sh
 profile_surfos() {
@@ -22,11 +20,10 @@ profile_surfos() {
   for _k in \$kernel_addons; do apks="\$apks linux-\${_k%-*}-modules-\${_k##*-}"; done
   for _a in \$kernel_addons; do apks="\$apks \$_a"; done
 }
-
 profile_surfos
 EOF
 
-sudo alpine-make-vm-image \
+alpine-make-vm-image \
   --image-format iso \
   --image-size 2G \
   --repositories-file /etc/apk/repositories \
