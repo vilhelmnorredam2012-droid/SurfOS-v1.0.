@@ -12,10 +12,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Installer nødvendige værktøjer
+      - name: Installer værktøjer
         run: |
           sudo apt update
-          sudo apt install -y debootstrap xorriso syslinux-utils isolinux mtools genisoimage squashfs-tools grub-efi-amd64 grub-efi-amd64-bin
+          sudo apt install -y debootstrap xorriso syslinux-utils isolinux mtools genisoimage squashfs-tools grub-efi-amd64 grub-efi-amd64-signed shim-signed
 
       - name: Lav minimal Debian chroot
         run: |
@@ -47,13 +47,14 @@ jobs:
           sudo cp live/filesystem.squashfs iso/live/
 
           # Kopier isolinux til legacy BIOS boot
-          sudo cp /usr/lib/ISOLINUX/isolinux.bin iso/isolinux/ || echo "isolinux.bin mangler – fortsætter uden legacy"
+          sudo cp /usr/lib/ISOLINUX/isolinux.bin iso/isolinux/ || echo "isolinux.bin mangler"
           sudo cp /usr/lib/syslinux/modules/bios/ldlinux.c32 iso/isolinux/ || true
 
-          # Kopier grub EFI til UEFI boot
-          sudo cp /usr/lib/grub/x86_64-efi/grubx64.efi iso/boot/grub/ || echo "grubx64.efi mangler – UEFI boot virker måske ikke"
+          # Kopier grub EFI fra den rigtige sti (Ubuntu/Debian signed version)
+          sudo cp /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed iso/boot/grub/grubx64.efi || echo "grubx64.efi mangler – prøver fallback"
+          sudo cp /usr/lib/grub/x86_64-efi/grubx64.efi iso/boot/grub/grubx64.efi || true
 
-          # Kopier kernel/boot hvis de findes (ignorér hvis tom mappe)
+          # Kopier kernel/boot hvis de findes
           sudo cp -r chroot/boot/* iso/boot/ || true
 
           sudo xorriso -as mkisofs -o surfos.iso \
@@ -63,18 +64,14 @@ jobs:
             -eltorito-alt-boot -e boot/grub/grubx64.efi -no-emul-boot \
             iso
 
-          sudo isohybrid surfos.iso || echo "isohybrid mislykkedes – ISO stadig brugbar som ren ISO"
+          sudo isohybrid surfos.iso || echo "isohybrid mislykkedes – ISO stadig brugbar"
 
-      - name: Vis filer og debug
-        run: |
-          ls -la *.iso || echo "Ingen ISO fundet"
-          find . -name '*.iso' -o -name '*.squashfs' || echo "Ingen filer fundet"
+      - name: Vis filer
+        run: ls -la *.iso || echo "Ingen ISO fundet"
 
-      - name: Upload ISO hvis den findes
+      - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
           name: surfos-iso
-          path: |
-            *.iso
-            live/*.squashfs
+          path: surfos.iso
           if-no-files-found: warn
