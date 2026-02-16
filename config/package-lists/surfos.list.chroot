@@ -1,0 +1,9 @@
+xserver-xorg-core
+xinit
+openbox
+chromium
+unclutter
+dbus
+locales
+locales-all
+keyboard-configuration
