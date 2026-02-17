@@ -23,7 +23,8 @@ jobs:
           sudo debootstrap --arch=amd64 bookworm chroot http://deb.debian.org/debian
           sudo chroot chroot apt update
           sudo chroot chroot apt install -y --no-install-recommends \
-            chromium xserver-xorg-core xinit openbox unclutter dbus locales
+            chromium xserver-xorg-core xinit openbox unclutter dbus locales \
+            linux-image-amd64 linux-headers-amd64 initramfs-tools
 
       - name: Opsæt dansk tastatur, locale og autostart
         run: |
@@ -38,6 +39,9 @@ jobs:
           echo "chromium --kiosk --incognito --no-first-run --noerrdialogs --disable-infobars https://www.startpage.com" | sudo tee -a chroot/home/surfos/.xinitrc
           sudo chmod +x chroot/home/surfos/.xinitrc
 
+          # Generer initramfs (vigtigt efter kernel-installation)
+          sudo chroot chroot update-initramfs -u -k all
+
       - name: Lav squashfs og hybrid ISO
         run: |
           sudo mkdir -p live iso/live iso/boot iso/isolinux iso/boot/grub
@@ -46,15 +50,11 @@ jobs:
 
           sudo cp live/filesystem.squashfs iso/live/
 
-          # Kopier isolinux til legacy BIOS boot
           sudo cp /usr/lib/ISOLINUX/isolinux.bin iso/isolinux/ || echo "isolinux.bin mangler"
           sudo cp /usr/lib/syslinux/modules/bios/ldlinux.c32 iso/isolinux/ || true
 
-          # Kopier grub EFI fra den rigtige sti (Ubuntu/Debian signed version)
-          sudo cp /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed iso/boot/grub/grubx64.efi || echo "grubx64.efi mangler – prøver fallback"
-          sudo cp /usr/lib/grub/x86_64-efi/grubx64.efi iso/boot/grub/grubx64.efi || true
+          sudo cp /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed iso/boot/grub/grubx64.efi || sudo cp /usr/lib/grub/x86_64-efi/grubx64.efi iso/boot/grub/grubx64.efi || echo "grubx64.efi mangler"
 
-          # Kopier kernel/boot hvis de findes
           sudo cp -r chroot/boot/* iso/boot/ || true
 
           sudo xorriso -as mkisofs -o surfos.iso \
