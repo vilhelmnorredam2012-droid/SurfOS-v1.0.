@@ -1,16 +1,5 @@
 #!/bin/sh
 
-# Skjul musemarkør
+exec openbox-session
 unclutter -idle 0.1 -root &
-
-# Start Chromium i kiosk-mode
-chromium \
-  --kiosk \
-  --incognito \
-  --no-first-run \
-  --noerrdialogs \
-  --disable-infobars \
-  --disable-breakpad \
-  --no-sandbox \
-  --disable-gpu \
-  https://www.startpage.com
+chromium --kiosk --incognito --no-first-run --noerrdialogs --disable-infobars --disable-gpu --no-sandbox https://www.startpage.com
