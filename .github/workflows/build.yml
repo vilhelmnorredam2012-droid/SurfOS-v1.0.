@@ -21,12 +21,17 @@ jobs:
         run: |
           sudo mkdir -p chroot
           sudo debootstrap --arch=amd64 bookworm chroot http://deb.debian.org/debian
+
+          # Første update (base repositories)
           sudo chroot chroot apt update
 
-          # Tilføj non-free-firmware repository (vigtigt for linux-firmware)
+          # Tilføj non-free og non-free-firmware (vigtigt for linux-firmware)
           echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" | sudo tee chroot/etc/apt/sources.list
+
+          # Anden update – nu kender apt non-free-firmware
           sudo chroot chroot apt update
 
+          # Installer pakker (nu finder den linux-firmware)
           sudo chroot chroot apt install -y --no-install-recommends \
             chromium xserver-xorg-core xinit openbox unclutter dbus locales \
             linux-image-amd64 linux-firmware initramfs-tools
@@ -44,6 +49,7 @@ jobs:
           echo "chromium --kiosk --incognito --no-first-run --noerrdialogs --disable-infobars https://www.startpage.com" | sudo tee -a chroot/home/surfos/.xinitrc
           sudo chmod +x chroot/home/surfos/.xinitrc
 
+          # Generer initramfs (vigtigt for boot)
           sudo chroot chroot update-initramfs -u -k all
 
       - name: Lav squashfs og hybrid ISO
